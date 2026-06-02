@@ -22,6 +22,11 @@ static void read_and_write(int connfd) {
             printf("read() error");
             return;
         }
+        if (n==0) {
+            // to avoid sigpipe when writing, and server process automatically ending without giving error.
+            printf("client disconnected");
+            return;
+        }
 
         printf("client says %s \n", rbuff);
 

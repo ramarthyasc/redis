@@ -38,6 +38,7 @@ int main() {
     if (clientfd < 0) {
         die("socket()");
     }
+    // you can also custom bind here to an ip and port - but it does automatically
 
     // connect to server address
     struct sockaddr_in server_addr = {};
