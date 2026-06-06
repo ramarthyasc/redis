@@ -43,7 +43,7 @@ int write_all(int fd, char *buf, size_t n) {
 
 }
 
-int32_t request_handler(int connfd) {
+int32_t request_handler(int connfd, char *response) {
     // protocol : 4bytes for length, then message
     // read the full data, then return error as -ve & 0 for success
     const size_t K_MAX_MESSAGE = 4096;
@@ -76,24 +76,31 @@ int32_t request_handler(int connfd) {
 
 
     printf("client requested with this message: %.*s\n", len, &buf[HEADER]);
+    printf("wheyyy\n");
 
     // response send : 
 
     // now write the content
 
     // write the length bytes
-    char response[] = "Hellooo";
     len = (uint32_t)strlen(response);
+    if (len > K_MAX_MESSAGE) {
+        return -1;
+    }
 
+    printf("2\n");
     char wbuf[HEADER + len];
     memcpy(wbuf, &len, HEADER);
     memcpy(&wbuf[HEADER], response, len);
 
+    printf("4\n");
     errno = 0;
     err = write_all(connfd, wbuf, HEADER + len);
+    printf("5\n");
     if (err) {
         return msg("write_all()");
     }
+    printf("6\n");
 
     return 0;
 }
@@ -130,11 +137,17 @@ int main() {
             continue;
         }
 
-        int err = 0;
-        err = request_handler(connfd);
-        if (err) {
-            continue;
+        while (1) {
+            int err = request_handler(connfd, "Hellooo from server");
+            printf("10\n");
+            if (err) {
+                //after EOF (ie; after client closed connection) - close the server fd connection
+                goto L_DONE;
+            }
+            printf("11\n");
         }
 
+L_DONE:
+        close(connfd);
     }
 }

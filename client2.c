@@ -7,8 +7,6 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-const size_t HEADER = 4;
-const size_t K_MAX_MESSAGE = 4096;
 
 int32_t write_all(int fd, char *wbuf, size_t n) {
     while(n > 0) {
@@ -33,6 +31,8 @@ int32_t read_all(int fd, char *rbuf, size_t n) {
 
         n -= rv;
         rbuf += rv;
+        printf("hiTwo %zu \n", n);
+        printf("hiOne %d\n", rv);
     }
     return 0;
 }
@@ -42,27 +42,50 @@ int msg(char *msg) {
     return -1;
 }
 
-int32_t fetch(int fd, char *wbuf, size_t n, char *rbuf) {
+int32_t fetch(int fd, char *req) {
+    const size_t HEADER = 4;
+    const size_t K_MAX_MESSAGE = 4096;
+
+    char rbuf[HEADER + K_MAX_MESSAGE]; 
+
+    uint32_t len = (uint32_t)strlen(req);
+    if (len > K_MAX_MESSAGE) {
+        return -1;
+    }
+
+
+    char wbuf[HEADER + len]; // like arraybuffer
+    memcpy(wbuf, &len, HEADER); // like view into a buffer
+    memcpy(&wbuf[HEADER], req, len);
     // write
     errno = 0;
-    int32_t err = write_all(fd, wbuf, n);
+    int32_t err = write_all(fd, wbuf, HEADER + len);
     if (err) {
       return msg(errno == 0 ? "EOF": "write_all");
     }
 
     // read header
     errno = 0;
+    printf("4\n");
     err = read_all(fd, rbuf, HEADER);
+    printf("5\n");
     if (err) {
         return msg(errno == 0 ? "EOF" : "read_all header");
     }
+    printf("6\n");
     
+    memcpy(&len, rbuf, HEADER); 
+
     // read message using the header encoded length
     errno = 0;
-    err = read_all(fd, rbuf, K_MAX_MESSAGE);
+    err = read_all(fd, &rbuf[HEADER], len);
+    printf("7\n");
     if (err) {
         return msg(errno == 0 ? "EOF" : "read_all() message");
     }
+
+    printf("server responds with this %.*s\n", len, &rbuf[HEADER]); // prints the required chars 
+                                                                    // ( used when no \0 is present)
 
     return 0;
 }
@@ -71,6 +94,7 @@ void die(char *msg) {
     perror(msg);
     exit(EXIT_FAILURE);
 }
+
 
 int main() {
     // create socket and connect to the server
@@ -89,21 +113,22 @@ int main() {
         die("connect()");
     }
 
-    
-    char rbuf[HEADER + K_MAX_MESSAGE]; 
-
-    char request[] = "helloo guys";
-    uint32_t len = (uint32_t)strlen(request);
-    char wbuf[HEADER + len];
-    memcpy(wbuf, &len, HEADER);
-    memcpy(&wbuf[HEADER], request, len);
 
     // send request (write)
-    int err = fetch(fd, wbuf, len, rbuf); // we get the rbuf as the side effect - which is the outcome. Good design pattern
+    int32_t err = fetch(fd, "Hello 1!"); // we get the rbuf as the side effect - which is the outcome. Good design pattern
+    printf("1\n");
     if (err) {
-        return -1;
+        goto L_DONE;
     }
 
-    printf("server responds with this %.*s\n", len, &rbuf[HEADER]);
+    printf("2\n");
+    err = fetch(fd, "Hello 2");
+    if (err) {
+        goto L_DONE;
+    }
+
+L_DONE: 
+    close(fd);
+    return 0;
 
 }
