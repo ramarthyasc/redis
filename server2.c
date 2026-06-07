@@ -19,7 +19,12 @@ int read_full(int fd, char *buf, size_t n) {
     // n is the no. of bytes that we need 
     while (n > 0) {
        rv = read(fd, buf, n); 
+
+       errno = 0;
        if (rv < 1) {
+            if (errno == EINTR) {
+                continue;
+            }
            return -1;
        }
        n -= (size_t)rv;
@@ -76,7 +81,6 @@ int32_t request_handler(int connfd, char *response) {
 
 
     printf("client requested with this message: %.*s\n", len, &buf[HEADER]);
-    printf("wheyyy\n");
 
     // response send : 
 
@@ -88,19 +92,15 @@ int32_t request_handler(int connfd, char *response) {
         return -1;
     }
 
-    printf("2\n");
     char wbuf[HEADER + len];
     memcpy(wbuf, &len, HEADER);
     memcpy(&wbuf[HEADER], response, len);
 
-    printf("4\n");
     errno = 0;
     err = write_all(connfd, wbuf, HEADER + len);
-    printf("5\n");
     if (err) {
         return msg("write_all()");
     }
-    printf("6\n");
 
     return 0;
 }
@@ -139,12 +139,10 @@ int main() {
 
         while (1) {
             int err = request_handler(connfd, "Hellooo from server");
-            printf("10\n");
             if (err) {
                 //after EOF (ie; after client closed connection) - close the server fd connection
                 goto L_DONE;
             }
-            printf("11\n");
         }
 
 L_DONE:

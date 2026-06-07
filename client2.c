@@ -25,14 +25,17 @@ int32_t write_all(int fd, char *wbuf, size_t n) {
 int32_t read_all(int fd, char *rbuf, size_t n) {
     while(n > 0) {
         int rv = read(fd, rbuf, n);
+        
+        errno = 0;
         if (rv < 1) {
+            if (errno == EINTR) {
+                continue;
+            }
             return -1;
         }
 
         n -= rv;
         rbuf += rv;
-        printf("hiTwo %zu \n", n);
-        printf("hiOne %d\n", rv);
     }
     return 0;
 }
@@ -66,20 +69,16 @@ int32_t fetch(int fd, char *req) {
 
     // read header
     errno = 0;
-    printf("4\n");
     err = read_all(fd, rbuf, HEADER);
-    printf("5\n");
     if (err) {
         return msg(errno == 0 ? "EOF" : "read_all header");
     }
-    printf("6\n");
     
     memcpy(&len, rbuf, HEADER); 
 
     // read message using the header encoded length
     errno = 0;
     err = read_all(fd, &rbuf[HEADER], len);
-    printf("7\n");
     if (err) {
         return msg(errno == 0 ? "EOF" : "read_all() message");
     }
@@ -116,12 +115,10 @@ int main() {
 
     // send request (write)
     int32_t err = fetch(fd, "Hello 1!"); // we get the rbuf as the side effect - which is the outcome. Good design pattern
-    printf("1\n");
     if (err) {
         goto L_DONE;
     }
 
-    printf("2\n");
     err = fetch(fd, "Hello 2");
     if (err) {
         goto L_DONE;
