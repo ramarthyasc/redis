@@ -7,7 +7,8 @@
 
 ### Step 2 - Blocking read and write considering receive and send buffers : server-client tcp connection **(server2, client2)** :
 
-We use a loop to read the number of bytes we want - because, client socket reads from / interacts with the receive buffer and then
+- Use a binary protocol ie; Each message contains :  Fixed no. of bytes for storing the length of the data, then the data bytes.
+- We use a loop to read the number of bytes we want - because, client socket reads from / interacts with the receive buffer and then
 copies the data to the Application's memory/buffer, and the receive buffer may not have the complete data that we need, so the syscall
 returns with the no. of bytes it has copied to our app's memory - which would be <= the needed data. So a Loop is needed to collect all
 the data that's needed.. 
