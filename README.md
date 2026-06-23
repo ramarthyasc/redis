@@ -30,4 +30,4 @@ Similarly - write syscall for server socket too.
 ### Step 3 - Non blocking read and write (Event loop system) - **(server3, client3)** :
 
 - Use poll instead of epoll for readiness api
-- Here, we make the sockets nonblocking using fcntl function - so that, whenever there is no data in the buffer for accept queue or recieve buffer or send buffer, then the syscalls (accept, read, send,..) will return -1 with errorno==EAGAIN. Otherwise, it will return normally (interactions with RAM) as in blocking socket's syscalls.
+- Here, we make the sockets nonblocking using fcntl function - so that, whenever there is no data in the buffer for accept queue or recieve buffer or send buffer, then the syscalls (accept, read, write,..) will return -1 with errorno==EAGAIN. Otherwise, it will return normally (remove socket from or read from or write into RAM buffer) as in blocking socket's syscalls - which would be nonblocking.
