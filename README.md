@@ -10,7 +10,8 @@ Sockets = Mostly -> 1 Listening socket who owns a SYN queue & an Accept queue (s
 Doubt - can a socket bind to a bound port ? 
 
 Yes. But a Listening sockets shouldn't because the incoming SYN packet wouldn't know which listening socket to go to.
-For connected sockets, the kernel allows many sockets to share the same local port as long as the full connection tuple is unique.
+
+For connected sockets, the kernel allows many sockets to share the same local port as long as the full connection tuple is unique. **The connected sockets inherit the same address of the listening socket from which they were produced.**
 For example, on the server:
 - 10.0.0.1:8080 <-> 1.2.3.4:50000
 - 10.0.0.1:8080 <-> 5.6.7.8:50001
