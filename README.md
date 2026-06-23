@@ -4,7 +4,7 @@
 
 <img width="860" height="598" alt="image" src="https://github.com/user-attachments/assets/e9ee9677-824b-45f5-bee0-7d3d8972c820" />
 
-###### Server ->
+##### Server ->
 Create socket using AF_INET (IP v4) + SOCK_STREAM (connectionful stream) = TCP -> set the reuseaddress option (for overriding the wait period on the port after unbinding, & then binding onto it in that wait period itself) as true for the socket -> bind to an IP address (Private ips mostly) and Port on the machine. Then we configure the socket as listenable - using listen syscall (doesn't block) which returns intantly after configuring the kernel queues for incoming connections.
 will be continued ..
 
@@ -16,6 +16,7 @@ We do accept syscall, which removes the fully established ConnectionSocket objec
 If there is nothing in the accept queue, then it's blocked until a fully established connectionsocket is inside the accept queue.
 -> Then send/receive messages between the connected server and client socket.
 
+##### Client ->
 
 ### Step 2 - Blocking read and write considering receive and send buffers : server-client tcp connection **(server2, client2)** :
 
