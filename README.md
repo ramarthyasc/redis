@@ -7,6 +7,18 @@
 ##### Server ->
 Sockets = Mostly -> 1 Listening socket who owns a SYN queue & an Accept queue (spits out connected Server sockets whenever clients initiate connections), Many connected Server sockets
 
+Doubt - can a socket bind to a bound port ? 
+
+Yes. But a Listening sockets shouldn't because the incoming SYN packet wouldn't know which listening socket to go to.
+For connected sockets, the kernel allows many sockets to share the same local port as long as the full connection tuple is unique.
+For example, on the server:
+10.0.0.1:8080 <-> 1.2.3.4:50000
+10.0.0.1:8080 <-> 5.6.7.8:50001
+10.0.0.1:8080 <-> 9.8.7.6:50002
+All three sockets use local port 8080.
+
+Process -
+
 Create socket using AF_INET (IP v4) + SOCK_STREAM (connectionful stream) = TCP -> set the reuseaddress option (for overriding the wait period on the port after unbinding, & then binding onto it in that wait period itself) as true for the socket -> bind to an IP address (Private ips mostly) and Port on the machine. Then we configure the socket as listenable - using listen syscall (doesn't block) which returns intantly after configuring the kernel queues for incoming connections.
 will be continued ..
 
